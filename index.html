@@ -1,0 +1,997 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>POO para Dummies, interactivo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=Lexend:wght@400;600;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+/* VOICE: un compañero de curso con humor, paciente; frases cortas, cero presión, cero castigo.
+   IDEA: un mapa de metro: tres líneas (Java, JavaFX, Persistencia) y cada estación es una lección corta.
+   PICTURE: el mapa de líneas en la portada; dentro de la lección, una sola tarjeta a la vez.
+   COLOUR+TYPE: fondo papel cálido; líneas naranja Java, violeta FX, petróleo BD; niveles verde/amarillo/azul del manual. Lexend + Atkinson Hyperlegible.
+   LAYOUT: barra fija con progreso y ajustes; portada con mapa; lección = puntos de pasos, tarjeta, botones grandes abajo. */
+:root{color-scheme:light dark;
+--bg:light-dark(#fbfaf6,#121418);--card:light-dark(#ffffff,#1b1e24);--ink:light-dark(#1d1f24,#eceae4);--mute:light-dark(#5d6068,#a3a6ad);--line:light-dark(#e3e0d8,#2c3038);
+--java:light-dark(#c9471a,#ff8a5c);--fx:light-dark(#6a43c0,#b39bff);--db:light-dark(#0b7a80,#5fd0d6);
+--g:light-dark(#e5f4e4,#1d3324);--gi:light-dark(#1f6b3a,#9be0b0);--y:light-dark(#f9eeda,#3a2f17);--yi:light-dark(#7a4f00,#f3c870);--b:light-dark(#e7f1fb,#172a3d);--bi:light-dark(#1f5a96,#9cc8f5);
+--ok:light-dark(#1f7a44,#7fe0a2);--bad:light-dark(#b3261e,#ff9a8f);--code:light-dark(#f4f2ec,#0d0f12);--fs:17px;--lh:1.6;--ls:0}
+:root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
+*{box-sizing:border-box;min-width:0}
+body{margin:0;background:var(--bg);color:var(--ink);font:var(--fs)/var(--lh) "Atkinson Hyperlegible",system-ui,sans-serif;letter-spacing:var(--ls);overflow-x:clip}
+body.comfy{--fs:19px;--lh:1.85;--ls:.02em;font-family:Lexend,"Atkinson Hyperlegible",sans-serif}
+h1,h2,h3{font-family:Lexend,sans-serif;line-height:1.1;text-wrap:balance;margin:0}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible,select:focus-visible,a:focus-visible,input:focus-visible{outline:3px solid var(--fx);outline-offset:2px}
+.top{position:sticky;top:0;z-index:5;display:flex;align-items:center;gap:12px;padding:10px max(4vw,14px);background:color-mix(in srgb,var(--bg) 92%,transparent);backdrop-filter:blur(6px);border-bottom:1px solid var(--line)}
+.brand{font:800 18px Lexend,sans-serif;background:none;border:0;padding:6px 0;min-height:44px}
+.bar{flex:1;height:10px;border-radius:9px;background:var(--line);overflow:hidden}.bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--java),var(--fx),var(--db));transition:width .4s}
+.pct{font-weight:700;font-size:15px;white-space:nowrap}
+.ib{min-height:44px;min-width:44px;border:1px solid var(--line);background:var(--card);border-radius:12px;padding:0 12px;font-size:15px}
+main{max-width:980px;margin:0 auto;padding:0 max(4vw,14px) 120px}
+.hero{padding:clamp(24px,5vw,48px) 0 12px}
+.hero h1{font-size:clamp(32px,6vw,50px);font-weight:800}
+.hero p{max-width:62ch;color:var(--mute);margin:12px 0 0}
+.cta{display:flex;flex-wrap:wrap;gap:10px;margin:18px 0 6px}
+.btn{min-height:48px;border-radius:14px;border:0;padding:0 20px;font-weight:700;background:var(--ink);color:var(--bg)}
+.btn.sec{background:var(--card);color:var(--ink);border:1px solid var(--line)}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.map{display:grid;gap:22px;margin:26px 0}
+.lineh{display:flex;align-items:baseline;gap:10px;margin-bottom:10px}
+.lineh b{font:800 15px Lexend,sans-serif;color:var(--c)}.lineh span{color:var(--mute);font-size:15px}
+.stations{position:relative;display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px}
+.st{position:relative;text-align:left;background:var(--card);border:2px solid var(--line);border-radius:16px;padding:14px 14px 12px 56px;min-height:84px}
+.st::before{content:"";position:absolute;left:14px;top:16px;width:22px;height:22px;border-radius:50%;border:5px solid var(--c);background:var(--card)}
+.st.done::before{background:var(--c)}
+.st.done::after{content:"✓";position:absolute;left:20px;top:15px;color:var(--card);font-weight:800;font-size:14px}
+.st.next{border-color:var(--c);box-shadow:0 6px 0 -2px var(--c)}
+.st small{display:block;color:var(--mute);font-size:13px}.st strong{display:block;font-size:15px;line-height:1.3}
+.st .stars{font-size:13px;color:var(--yi)}
+.tips{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,260px),1fr));gap:12px;margin-top:8px}
+.tip{padding:16px;border-radius:16px;border:1px solid var(--line);background:var(--card);font-size:15px}
+.tip b{display:block;font-family:Lexend,sans-serif;margin-bottom:4px}
+.lv{display:inline-flex;align-items:center;gap:6px;font-weight:700;font-size:14px;padding:4px 12px;border-radius:99px}
+.lv.g{background:var(--g);color:var(--gi)}.lv.y{background:var(--y);color:var(--yi)}.lv.b{background:var(--b);color:var(--bi)}
+.crumb{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding-top:20px;color:var(--mute);font-size:15px}
+.crumb button{background:none;border:0;text-decoration:underline;min-height:44px;padding:0}
+.lt{font-size:clamp(26px,4.5vw,38px);font-weight:800;margin:6px 0 4px}
+.lsub{color:var(--mute);margin:0 0 14px}
+.dots{display:flex;gap:6px;margin:10px 0 16px;flex-wrap:wrap}
+.dots span{height:8px;flex:1 1 24px;max-width:70px;border-radius:8px;background:var(--line)}
+.dots span.on{background:var(--ink)}.dots span.past{background:var(--mute)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:22px;padding:clamp(18px,3.5vw,32px);box-shadow:0 10px 30px -18px rgba(0,0,0,.35)}
+.card.g{border-top:8px solid var(--gi)}.card.y{border-top:8px solid var(--yi)}.card.b{border-top:8px solid var(--bi)}.card.a{border-top:8px solid var(--fx)}
+.card h3{font-size:clamp(21px,3vw,26px);margin:12px 0 10px}
+.card p{margin:0 0 12px;max-width:68ch}
+.card ul{margin:0 0 14px;padding-left:1.2em;max-width:68ch}.card li{margin:6px 0}
+.big{font-size:1.15em}
+.opt-note{font-size:15px;color:var(--mute);margin-top:4px}
+.codebox{position:relative;margin:14px 0}
+pre{margin:0;background:var(--code);border:1px solid var(--line);border-radius:14px;padding:16px;overflow-x:auto;font:14.5px/1.6 "JetBrains Mono",ui-monospace,monospace;tab-size:4}
+.copy{position:absolute;top:8px;right:8px;min-height:36px;font-size:13px;border:1px solid var(--line);background:var(--card);border-radius:10px;padding:0 10px}
+.k{color:var(--fx);font-weight:600}.s{color:var(--ok)}.c{color:var(--mute);font-style:italic}
+code{font-family:"JetBrains Mono",monospace;font-size:.9em;background:var(--code);padding:1px 6px;border-radius:6px;overflow-wrap:anywhere}
+.q{font-weight:700;font-size:1.08em;margin:6px 0 14px}
+.opts{display:grid;gap:10px}
+.opt{text-align:left;min-height:52px;padding:12px 16px;border-radius:14px;border:2px solid var(--line);background:var(--bg)}
+.opt:hover{border-color:var(--mute)}
+.opt.ok{border-color:var(--ok);background:color-mix(in srgb,var(--ok) 14%,var(--card))}
+.opt.no{border-color:var(--bad);background:color-mix(in srgb,var(--bad) 10%,var(--card))}
+.opt.mono{font:14.5px/1.5 "JetBrains Mono",monospace;white-space:pre-wrap}
+.fb{margin-top:14px;padding:14px 16px;border-radius:14px;display:none}
+.fb.show{display:block}.fb.ok{background:color-mix(in srgb,var(--ok) 14%,var(--card));border:1px solid var(--ok)}
+.fb.no{background:color-mix(in srgb,var(--bad) 9%,var(--card));border:1px solid var(--bad)}
+.pool,.ans{display:grid;gap:8px;min-height:56px;padding:10px;border-radius:14px}
+.ans{border:2px dashed var(--line);margin-bottom:10px}
+.ans:empty::before{content:"Toca las líneas de abajo en el orden correcto";color:var(--mute);font-size:15px;padding:6px}
+.chip{text-align:left;min-height:46px;padding:10px 14px;border-radius:12px;border:2px solid var(--line);background:var(--bg);font:14px/1.45 "JetBrains Mono",monospace;white-space:pre-wrap}
+.ans .chip{border-color:var(--fx)}
+.mgrid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px}
+.mcol{display:grid;gap:8px;align-content:start}
+.mcol .opt{min-height:56px;font-size:15px}
+.opt.sel{border-color:var(--fx);background:color-mix(in srgb,var(--fx) 12%,var(--card))}
+.opt.lock{border-color:var(--ok);opacity:.75;cursor:default}
+.shake{animation:sh .35s}@keyframes sh{25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+select.blank{font:600 14.5px "JetBrains Mono",monospace;min-height:36px;border-radius:8px;border:2px solid var(--fx);background:var(--card);color:var(--ink);padding:0 6px}
+.row{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px}
+.nav{position:fixed;left:0;right:0;bottom:0;z-index:5;display:flex;gap:10px;justify-content:center;padding:12px max(4vw,14px) calc(12px + env(safe-area-inset-bottom));background:color-mix(in srgb,var(--bg) 94%,transparent);border-top:1px solid var(--line);backdrop-filter:blur(6px)}
+.nav .btn{flex:1;max-width:300px}
+.wrap{text-align:center;padding:10px 0}
+.wrap .medal{font:800 clamp(44px,10vw,72px) Lexend,sans-serif;color:light-dark(#d49a00,#f3c870)}
+.recap{text-align:left;max-width:560px;margin:16px auto;padding:16px 18px;border-radius:16px;background:var(--g);color:var(--ink)}
+.panel{position:fixed;inset:0;z-index:9;display:none;place-items:center;background:rgba(0,0,0,.45);padding:16px}
+.panel.open{display:grid}
+.sheet{background:var(--card);color:var(--ink);border-radius:22px;padding:22px;width:min(460px,100%);max-height:90vh;overflow:auto}
+.sheet h2{font-size:24px;margin-bottom:12px}
+.set{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--line)}
+.set small{display:block;color:var(--mute);font-size:14px}
+.sw{appearance:none;width:52px;height:30px;border-radius:30px;background:var(--line);position:relative;flex:none;cursor:pointer}
+.sw::after{content:"";position:absolute;top:4px;left:4px;width:22px;height:22px;border-radius:50%;background:var(--card);transition:left .2s}
+.sw:checked{background:var(--ok)}.sw:checked::after{left:26px}
+.timer{font:800 clamp(56px,14vw,88px) Lexend,sans-serif;text-align:center;margin:8px 0}
+.check{display:flex;gap:12px;align-items:flex-start;padding:10px 0;border-bottom:1px solid var(--line);cursor:pointer}
+.check input{width:24px;height:24px;flex:none;margin-top:2px;accent-color:var(--ok)}
+.check.on span{text-decoration:line-through;color:var(--mute)}
+body.focus .top .bar,body.focus .crumb,body.focus .lsub{opacity:.25}
+body.focus .card{box-shadow:0 0 0 100vmax color-mix(in srgb,var(--bg) 55%,transparent)}
+footer{color:var(--mute);font-size:14px;margin-top:40px}
+@media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+body.calm *{transition:none!important;animation:none!important}
+@media(max-width:600px){.mgrid{grid-template-columns:1fr 1fr;gap:8px}.mcol .opt{font-size:14px;padding:10px}.pct{display:none}.st{padding-left:50px}}
+</style>
+</head>
+<body>
+<header class="top">
+  <button class="brand" id="home" aria-label="Volver al mapa">POO para Dummies</button>
+  <div class="bar" aria-hidden="true"><i id="barfill"></i></div>
+  <span class="pct" id="pct">0%</span>
+  <button class="ib" id="openSet" aria-haspopup="dialog">Ajustes</button>
+</header>
+<main id="app"></main>
+
+<div class="panel" id="setPanel" role="dialog" aria-modal="true" aria-labelledby="setT">
+  <div class="sheet">
+    <h2 id="setT">Ajustes de lectura</h2>
+    <div class="set"><div>Tamaño del texto<small>Agranda o achica todo</small></div><div class="row" style="margin:0"><button class="ib" data-fs="-1" aria-label="Texto más pequeño">A−</button><button class="ib" data-fs="1" aria-label="Texto más grande">A+</button></div></div>
+    <label class="set"><div>Lectura cómoda<small>Letra Lexend, más espacio entre líneas</small></div><input type="checkbox" class="sw" id="pComfy"></label>
+    <label class="set"><div>Modo foco<small>Atenúa todo lo que no es la tarjeta</small></div><input type="checkbox" class="sw" id="pFocus"></label>
+    <label class="set"><div>Sin animaciones<small>Nada se mueve ni tiembla</small></div><input type="checkbox" class="sw" id="pCalm"></label>
+    <label class="set"><div>Sugerir pausas<small>Ofrece una pausa de 2 minutos al terminar cada lección</small></div><input type="checkbox" class="sw" id="pBreak"></label>
+    <div class="row"><button class="btn" id="closeSet">Listo</button><button class="btn sec" id="resetAll">Borrar mi progreso</button></div>
+    <p id="resetMsg" class="opt-note" role="status"></p>
+  </div>
+</div>
+
+<div class="panel" id="breakPanel" role="dialog" aria-modal="true" aria-labelledby="brT">
+  <div class="sheet" style="text-align:center">
+    <h2 id="brT">Pausa de 2 minutos</h2>
+    <p>Levántate, estira los brazos, toma agua. El código sigue aquí cuando vuelvas.</p>
+    <div class="timer" id="brTime" aria-live="polite">2:00</div>
+    <div class="row" style="justify-content:center"><button class="btn" id="brEnd">Ya volví</button></div>
+  </div>
+</div>
+
+<script>
+{
+const P=[
+ {k:'java',n:'Línea 1 · Java',d:'Cómo hablarle a una máquina que entiende todo literalmente'},
+ {k:'fx',n:'Línea 2 · JavaFX',d:'Ventanas bonitas (siempre que el CSS coopere)'},
+ {k:'db',n:'Línea 3 · Persistencia',d:'Que tus datos sobrevivan al botón de apagar'}];
+
+const L=[
+{id:'l11',p:0,n:'1.1',t:'Clases y objetos',s:'Moldes y galletas',
+ v:'Una <b>clase</b> es el molde de las galletas; un <b>objeto</b> es la galleta. Con un molde llamado Perro haces mil galletas, cada una con su nombre y su personalidad. Nadie se come el molde.',
+ q:{type:'mcq',q:'Si Perro es la clase, ¿qué es Firulais?',o:['Otra clase','Un objeto: una galleta hecha con el molde','Un método','Un atributo'],a:1,why:'Firulais es una instancia: se crea con new Perro("Firulais").'},
+ m:['<b>Atributos</b>: lo que el objeto sabe (nombre, energía).','<b>Métodos</b>: lo que el objeto hace (correr, ladrar).','El <b>constructor</b> se ejecuta con <code>new</code> y deja al objeto listo para vivir.','<code>this</code> significa «yo mismo»: útil cuando el parámetro se llama igual que el atributo.','Cada objeto tiene su propia copia: si Firulais se cansa, Rex sigue fresco.'],
+ mc:`public class Perro {
+    private String nombre;
+    private int energia = 100;
+
+    public Perro(String nombre) {
+        this.nombre = nombre;
+    }
+
+    public void correr() {
+        energia -= 10;
+    }
+}
+
+Perro firulais = new Perro("Firulais");
+Perro rex = new Perro("Rex");
+firulais.correr();   // Rex sigue con 100 de energía`,
+ a:{type:'fill',q:'Completa los huecos para que el código compile.',code:`public Perro(String nombre) {
+    this.nombre = [[0]];
+}
+
+Perro rex = [[1]] Perro("Rex");`,b:[{o:['nombre','this','Perro'],a:0},{o:['new','this','class'],a:0}],why:'this.nombre = nombre copia el parámetro al atributo; new crea la galleta.'},
+ c:['Atributos <code>private</code> y constructores sobrecargados (uno delega en otro con <code>this(...)</code>): el objeto nunca nace roto.','<code>static</code> pertenece a la clase y se comparte; lo demás es de cada instancia.','Sobrescribe <code>toString()</code> para no ver <code>Perro@1b6d3586</code> en el println.','Valida en el constructor: un nombre null hoy es un NullPointerException a las 3 a.m. de la entrega.','Regla de oro: una clase, una responsabilidad.'],
+ cc:`public class Perro {
+    private static int total = 0;          // compartido por todos los perros
+    private final String nombre;
+
+    public Perro(String nombre) {
+        if (nombre == null || nombre.isBlank()) {
+            throw new IllegalArgumentException("El nombre es obligatorio");
+        }
+        this.nombre = nombre;
+        total++;
+    }
+
+    public Perro() {
+        this("Sin nombre");                // delega en el otro constructor
+    }
+
+    @Override
+    public String toString() {
+        return "Perro " + nombre;
+    }
+}`,
+ r:'Clase = molde, objeto = galleta, constructor = el momento del new.'},
+
+{id:'l12',p:0,n:'1.2',t:'Encapsulamiento',s:'Tu saldo no es un buffet libre',
+ v:'Tu cuenta del banco no está sobre una mesa para que cualquiera meta la mano: hay una <b>ventanilla</b>. Encapsular es esconder los datos (<code>private</code>) y dejar solo unos botones controlados (métodos <code>public</code>).',
+ q:{type:'tf',q:'Encapsular es solo poner private a los atributos.',a:1,why:'Falso. La gracia es que el setter pueda decir «no»: proteger las reglas del objeto.'},
+ m:['Atributos <code>private</code>, acceso por getters y setters.','La gracia no es tener setters, sino que el setter pueda decir <b>«no»</b>.','Sin validación, alguien escribe <code>cuenta.saldo = -9999999</code> y tu programa cree que eres millonario al revés.','Los getters y setters los genera el IDE; las reglas las pones tú.'],
+ mc:`public void setPrecio(int precio) {
+    if (precio < 0) {
+        throw new IllegalArgumentException("El precio no puede ser negativo");
+    }
+    this.precio = precio;
+}`,
+ a:{type:'bug',q:'¿Qué línea deja la ventanilla abierta para que cualquiera meta la mano?',lines:['public class Cuenta {','    public int saldo;','    private final String titular;','    public int getSaldo() { return saldo; }','}'],ans:1,why:'saldo es public: desde afuera se puede escribir cuenta.saldo = -9999999. Debe ser private.'},
+ c:['Encapsular de verdad es proteger <b>invariantes</b>, no solo poner private.','Prefiere métodos con intención (<code>depositar</code>, <code>retirar</code>) a un <code>setSaldo</code> ciego.','Usa <code>final</code> para lo que no debe cambiar.','Fuga clásica: si un getter devuelve tu ArrayList interno, cualquiera puede vaciarlo. Devuelve <code>List.copyOf(...)</code>.'],
+ cc:`public class Cuenta {
+    private final String titular;
+    private int saldo;
+    private final List<String> movimientos = new ArrayList<>();
+
+    public Cuenta(String titular) {
+        this.titular = titular;
+    }
+
+    public void depositar(int monto) {
+        validarMonto(monto);
+        saldo += monto;
+        movimientos.add("Depósito +" + monto);
+    }
+
+    public void retirar(int monto) {
+        validarMonto(monto);
+        if (monto > saldo) {
+            throw new IllegalStateException("Saldo insuficiente");
+        }
+        saldo -= monto;
+        movimientos.add("Retiro -" + monto);
+    }
+
+    private void validarMonto(int monto) {
+        if (monto <= 0) {
+            throw new IllegalArgumentException("El monto debe ser positivo");
+        }
+    }
+
+    public List<String> getMovimientos() {
+        return List.copyOf(movimientos);   // copia: nadie vacía tu lista desde afuera
+    }
+}`,
+ r:'private + métodos que validan. El setter puede (y debe) decir «no».'},
+
+{id:'l13',p:0,n:'1.3',t:'Herencia y polimorfismo',s:'La familia y sus rarezas',
+ v:'<b>Herencia</b>: un Perro <i>es un</i> Animal, así que hereda todo lo de Animal sin que lo copies (como los ojos de tu papá, pero sin la calvicie). <b>Polimorfismo</b>: le dices «habla» a cualquier animal y cada uno responde a su manera. El perro ladra; el gato te mira con desprecio.',
+ q:{type:'mcq',q:'¿Qué versión de hablar() se ejecuta?',code:`Animal a = new Gato("Michi");
+a.hablar();`,o:['La de Animal, porque la variable es Animal','La de Gato, porque el objeto real es un Gato','Error de compilación','Ninguna'],a:1,why:'Java decide en tiempo de ejecución según el objeto real, no según el tipo de la variable.'},
+ m:['Con <code>extends</code> heredas atributos y métodos.','Con <code>@Override</code> cambias un método heredado; con <code>super</code> llamas al padre.','Una variable del tipo padre puede apuntar a un objeto hijo.','Un solo <code>for</code> sirve para perros, gatos y el animal que agregues el próximo semestre.'],
+ mc:`public class Animal {
+    protected String nombre;
+
+    public Animal(String nombre) {
+        this.nombre = nombre;
+    }
+
+    public String hablar() {
+        return "...";
+    }
+}
+
+public class Gato extends Animal {
+    public Gato(String nombre) {
+        super(nombre);
+    }
+
+    @Override
+    public String hablar() {
+        return "Miau (con desprecio)";
+    }
+}`,
+ a:{type:'order',q:'Ordena el constructor de Perro (hijo de Animal) para que compile.',lines:['public Perro(String nombre, String raza) {','    super(nombre);','    this.raza = raza;','}'],why:'super(...) debe ser la primera línea del constructor del hijo.'},
+ c:['El constructor del hijo llama al del padre con <code>super(...)</code> como <b>primera línea</b>.','<code>protected</code> para lo que los hijos necesitan ver; <code>final</code> para impedir que se sobrescriba.','<code>abstract</code> cuando el padre es una idea y no un objeto real: nadie ha visto un «Animal» a secas.','Desde Java 16, <code>instanceof</code> con pattern matching te ahorra el cast.','Herencia es para «es un»; si es «tiene un», usa composición.'],
+ cc:`public abstract class Animal {
+    protected final String nombre;
+
+    protected Animal(String nombre) {
+        this.nombre = nombre;
+    }
+
+    public abstract String hablar();
+
+    public void presentarse() {
+        System.out.println(nombre + " dice: " + hablar());
+    }
+}
+
+List<Animal> animales = List.of(new Perro("Rex"), new Gato("Michi"));
+for (Animal a : animales) {
+    a.presentarse();
+    if (a instanceof Perro p) {      // pattern matching, sin cast manual
+        p.traerPelota();
+    }
+}`,
+ r:'extends hereda, @Override cambia, super llama al padre. El objeto real decide.'},
+
+{id:'l14',p:0,n:'1.4',t:'Interfaces',s:'El contrato que nadie lee pero todos firman',
+ v:'Una interfaz es un <b>enchufe</b>: define la forma, no el aparato. Todo lo que quiera conectarse debe tener esa forma; da igual si es una tostadora o un cargador. En código: «si dices que eres Regable, más te vale saber regar».',
+ q:{type:'mcq',q:'¿Cuántas interfaces puede implementar una clase?',o:['Solo una','Todas las que quiera','Ninguna si ya usa extends','Máximo dos'],a:1,why:'Una clase extiende una sola clase, pero puede implementar todas las interfaces que quiera.'},
+ m:['La interfaz dice <b>qué</b> se puede hacer; cada clase que la implementa dice <b>cómo</b>.','Se implementa con <code>implements</code>.','Gran truco: declara variables con el tipo de la interfaz y olvídate de quién hay detrás.'],
+ mc:`public interface Regable {
+    void regar();
+}
+
+public class Cactus implements Regable {
+    @Override
+    public void regar() {
+        System.out.println("Una gota, gracias");
+    }
+}
+
+List<Regable> plantas = List.of(new Cactus(), new Helecho());
+for (Regable r : plantas) {
+    r.regar();
+}`,
+ a:{type:'match',q:'Une cada palabra clave con lo que hace.',pairs:[['interface','Define QUÉ se puede hacer'],['implements','La clase promete cumplir el contrato'],['extends','Hereda de UNA sola clase'],['default','Método de interfaz que ya trae cuerpo']]},
+ c:['<b>Clase abstracta</b>: los hijos comparten estado y código base.','<b>Interfaz</b>: exiges un comportamiento a clases que no tienen nada que ver entre sí.','Las interfaces pueden traer métodos <code>default</code> y <code>static</code>.','Una interfaz con un solo método abstracto es <b>funcional</b> y se reemplaza por una lambda.','<code>Comparable</code> y <code>Comparator</code> son las que más usarás para ordenar.'],
+ cc:`@FunctionalInterface
+public interface Descuento {
+    int aplicar(int precio);
+}
+
+Descuento diezPorCiento = precio -> precio * 90 / 100;
+System.out.println(diezPorCiento.aplicar(5000));   // 4500
+
+// Comparable: el orden natural de la clase
+public class Planta implements Comparable<Planta> {
+    @Override
+    public int compareTo(Planta otra) {
+        return Integer.compare(this.precio, otra.precio);
+    }
+}
+
+// Comparator: otro orden cuando lo necesites
+inventario.sort(Comparator.comparing(Planta::getNombre));`,
+ r:'Interfaz = enchufe. Dice QUÉ; cada clase decide CÓMO.'},
+
+{id:'l15',p:0,n:'1.5',t:'Colecciones',s:'Cuando un arreglo se queda corto',
+ v:'Un <b>ArrayList</b> es una lista de compras que crece sola: agregas cosas y nunca se acaba el papel. Un <b>HashMap</b> es un diccionario: buscas la palabra (la clave) y te entrega la definición (el valor), sin leer el diccionario entero.',
+ q:{type:'mcq',q:'Necesitas buscar el stock de una planta por su nombre. ¿Qué usas?',o:['ArrayList<String>','HashMap<String, Integer>','Un arreglo int[]','Un String muy largo'],a:1,why:'Buscar por clave (nombre) y obtener un valor (stock) es exactamente un Map.'},
+ m:['Los tipos entre <code>&lt;&gt;</code> son <b>genéricos</b>: le dicen a Java qué guardas (así no metes un plátano en la lista de autos).','<b>List</b>: <code>add</code>, <code>get(i)</code>, <code>remove</code>, <code>size</code> y for-each.','<b>Map</b>: <code>put</code>, <code>get</code>, <code>containsKey</code> y recorres con <code>entrySet()</code>.','Las claves de un Map no se repiten: si pones la misma, pisas el valor anterior.'],
+ mc:`List<String> nombres = new ArrayList<>();
+nombres.add("Cactus");
+nombres.add("Helecho");
+System.out.println(nombres.get(0));   // Cactus
+System.out.println(nombres.size());   // 2
+
+Map<String, Integer> stock = new HashMap<>();
+stock.put("Cactus", 5);
+for (Map.Entry<String, Integer> e : stock.entrySet()) {
+    System.out.println(e.getKey() + " -> " + e.getValue());
+}`,
+ a:{type:'mcq',q:'¿Qué imprime este código?',code:`Map<String, Integer> stock = new HashMap<>();
+stock.put("Cactus", 5);
+stock.put("Cactus", 8);
+System.out.println(stock.size() + " " + stock.get("Cactus"));`,o:['2 5','1 8','1 5','2 13'],a:1,mono:true,why:'La clave se repite, así que el segundo put pisa el 5 con un 8. Queda una sola entrada.'},
+ c:['Declara con la interfaz (<code>List</code>, <code>Set</code>, <code>Map</code>) y crea con la implementación.','<code>Set</code> no admite repetidos.','Para usar tus objetos como clave necesitas <code>equals</code> y <code>hashCode</code> coherentes (un record ya los trae).','Nunca borres con <code>remove</code> dentro de un for-each: usa <code>removeIf</code>.','<code>List.of(...)</code> es inmodificable; envuélvela en <code>new ArrayList&lt;&gt;(...)</code> si vas a agregar.'],
+ cc:`List<Planta> baratas = inventario.stream()
+        .filter(p -> p.getPrecio() < 4000)
+        .sorted(Comparator.comparing(Planta::getPrecio))
+        .toList();
+
+inventario.removeIf(p -> p.getPrecio() > 4500);   // sin ConcurrentModificationException
+
+Map<String, Integer> stock = new HashMap<>();
+stock.merge("Cactus", 5, Integer::sum);           // suma si ya existe
+int helechos = stock.getOrDefault("Helecho", 0);  // 0, sin NullPointerException
+
+Set<String> tipos = new HashSet<>(List.of("cactus", "cactus", "helecho"));
+System.out.println(tipos.size());                 // 2`,
+ r:'List = lista que crece. Map = clave → valor. Set = sin repetidos.'},
+
+{id:'l16',p:0,n:'1.6',t:'Excepciones',s:'Cuando Java levanta la mano y dice «jefe, se rompió»',
+ v:'Una excepción es Java avisándote que algo salió mal, en vez de seguir como si nada. <code>try</code> = «intenta esto»; <code>catch</code> = «y si explota, haz esto otro». Es el <b>paracaídas</b> del programa.',
+ q:{type:'tf',q:'Un catch vacío es buena idea para que el programa no se caiga nunca.',a:1,why:'Falso. Un catch vacío es como silenciar la alarma de incendio: el problema sigue, pero nadie se entera.'},
+ m:['<b>Checked</b> (como <code>IOException</code>): Java te obliga a manejarlas o declararlas con <code>throws</code>.','<b>Unchecked</b> (como <code>NullPointerException</code>): heredan de <code>RuntimeException</code>; nadie te obliga, pero igual explotan.','Con <code>throw</code> lanzas una; con <code>finally</code> ejecutas algo pase lo que pase.'],
+ mc:`try {
+    int cantidad = Integer.parseInt(txtCantidad.getText());
+    vivero.vender("Cactus", cantidad);
+} catch (NumberFormatException e) {
+    System.out.println("Eso no es un número");
+} finally {
+    System.out.println("Esto corre siempre");
+}`,
+ a:{type:'match',q:'Une cada concepto con su descripción.',pairs:[['IOException','Checked: Java te obliga a manejarla'],['NullPointerException','Unchecked: hereda de RuntimeException'],['throw','Lanzas tú una excepción'],['finally','Corre pase lo que pase']]},
+ c:['Crea excepciones propias para errores de negocio: <code>StockInsuficienteException</code> dice más que un RuntimeException genérico.','Captura de lo más específico a lo más general; multi-catch cuando el manejo es igual.','<code>try-with-resources</code> cierra archivos y conexiones solo.','En una app con interfaz, la excepción sube hasta el controlador y ahí se vuelve un <b>Alert</b>, no un stack trace.','Si capturas y relanzas, conserva la causa original.'],
+ cc:`public class StockInsuficienteException extends Exception {
+    public StockInsuficienteException(String mensaje) {
+        super(mensaje);
+    }
+}
+
+// El modelo lanza...
+public void vender(String planta, int cantidad) throws StockInsuficienteException {
+    int disponible = stock.getOrDefault(planta, 0);
+    if (cantidad > disponible) {
+        throw new StockInsuficienteException(
+                "Quedan " + disponible + " de " + planta + ", pediste " + cantidad);
+    }
+    stock.put(planta, disponible - cantidad);
+}
+
+// ...y el controlador lo convierte en algo legible
+try {
+    vivero.vender("Cactus", 50);
+} catch (StockInsuficienteException e) {
+    new Alert(Alert.AlertType.WARNING, e.getMessage()).showAndWait();
+}`,
+ r:'try intenta, catch rescata, finally siempre corre. Nunca un catch vacío.'},
+
+{id:'l21',p:1,n:'2.1',t:'Anatomía de una app',s:'Escenario, obra y actores',
+ v:'El <b>Stage</b> es el teatro (la ventana). La <b>Scene</b> es la obra que se presenta ahí. Los <b>nodos</b> (Label, Button, TextField) son los actores. Armas la obra, la subes al escenario y gritas <code>show()</code>. Telón arriba.',
+ q:{type:'mcq',q:'En la metáfora del teatro, ¿qué es la Scene?',o:['El teatro: la ventana','La obra que se presenta','Un actor','El público'],a:1,why:'Stage = teatro (ventana), Scene = obra, nodos = actores.'},
+ m:['Tu clase principal extiende <code>Application</code> y sobrescribe <code>start(Stage)</code>: ahí se arma todo.','En <code>main</code> solo llamas a <code>launch(args)</code>.','Los nodos van dentro de un layout (por ejemplo VBox, que los apila) y el layout es la raíz de la Scene.'],
+ mc:`public class App extends Application {
+    @Override
+    public void start(Stage stage) {
+        Label saludo = new Label("Hola, DSY1102");
+        Button boton = new Button("Tócame");
+        boton.setOnAction(e -> saludo.setText("¡Funciona!"));
+
+        VBox raiz = new VBox(10, saludo, boton);   // 10 px de separación
+        stage.setScene(new Scene(raiz, 320, 200));
+        stage.setTitle("Mi primera ventana");
+        stage.show();
+    }
+
+    public static void main(String[] args) {
+        launch(args);
+    }
+}`,
+ a:{type:'order',q:'Ordena las líneas dentro de start() para armar la ventana.',lines:['Label saludo = new Label("Hola");','VBox raiz = new VBox(10, saludo);','stage.setScene(new Scene(raiz, 320, 200));','stage.show();'],why:'Primero los actores, luego el layout, luego la obra en el escenario y al final el telón.'},
+ c:['JavaFX ya no viene en el JDK desde Java 11: se agrega como dependencia (aquí 21.0.6).','Ejecuta con <code>mvn javafx:run</code> o configura el SDK en el IDE con el module path.','Ciclo de vida: <code>init()</code> → <code>start()</code> → <code>stop()</code>.','En proyectos serios la vista vive en un archivo FXML y se carga con <code>FXMLLoader</code>.','Toda modificación de la interfaz ocurre en el hilo de JavaFX; desde otro hilo usa <code>Platform.runLater(...)</code>.'],
+ cc:`<dependencies>
+    <dependency>
+        <groupId>org.openjfx</groupId>
+        <artifactId>javafx-controls</artifactId>
+        <version>21.0.6</version>
+    </dependency>
+    <dependency>
+        <groupId>org.openjfx</groupId>
+        <artifactId>javafx-fxml</artifactId>
+        <version>21.0.6</version>
+    </dependency>
+</dependencies>
+
+<plugin>
+    <groupId>org.openjfx</groupId>
+    <artifactId>javafx-maven-plugin</artifactId>
+    <version>0.0.8</version>
+    <configuration>
+        <mainClass>cl.duoc.vivero.App</mainClass>
+    </configuration>
+</plugin>`,
+ r:'Stage = ventana, Scene = obra, nodos = actores. start() arma, show() muestra.'},
+
+{id:'l22',p:1,n:'2.2',t:'Layouts y controles',s:'Ordenar los muebles de la ventana',
+ v:'Los <b>layouts</b> son la forma de acomodar los muebles; los <b>controles</b> son los muebles: Label (texto), TextField (cajita para escribir), Button (botón), ComboBox (lista desplegable).',
+ q:{type:'match',q:'Une cada layout con cómo acomoda las cosas.',pairs:[['VBox','Apila hacia abajo'],['HBox','Pone todo en fila'],['GridPane','Ordena como planilla'],['BorderPane','Cinco zonas: arriba, abajo, lados y centro']]},
+ m:['Los layouts se anidan como cajas dentro de cajas.','BorderPane de raíz + GridPane en el centro (formulario) + HBox abajo (botones) cubre el 90% de las pantallas.','<code>setPadding</code> y <code>setSpacing</code> dan aire; <code>setAlignment</code> centra.'],
+ mc:`GridPane form = new GridPane();
+form.setHgap(10);
+form.setVgap(10);
+form.add(new Label("Nombre:"), 0, 0);
+form.add(new TextField(), 1, 0);
+
+HBox botones = new HBox(10, new Button("Guardar"), new Button("Cancelar"));
+botones.setAlignment(Pos.CENTER_RIGHT);
+
+BorderPane raiz = new BorderPane();
+raiz.setCenter(form);
+raiz.setBottom(botones);
+raiz.setPadding(new Insets(15));`,
+ a:{type:'mcq',q:'Creaste un Button, compila, pero no aparece en la ventana. ¿Causa más probable?',o:['Faltó agregarlo al layout padre','Java está roto','Le faltó setText','La ventana es muy pequeña'],a:0,why:'Casi siempre es eso: un nodo que nadie agregó a ningún layout no existe para la ventana.'},
+ c:['Para que el formulario se estire, usa <code>ColumnConstraints</code> con <code>Priority.ALWAYS</code> y <code>setMaxWidth(Double.MAX_VALUE)</code>.','ComboBox y ListView se llenan con <code>FXCollections.observableArrayList</code>, que avisa a la interfaz cuando cambia.','Estilo con hoja CSS (<code>scene.getStylesheets().add(...)</code>).','Truco de oro: pon id o styleClass a los nodos y estiliza desde el CSS, no desde el código.'],
+ cc:`ComboBox<String> cmbTipo = new ComboBox<>(
+        FXCollections.observableArrayList("Interior", "Exterior", "Suculenta"));
+cmbTipo.setPromptText("Selecciona un tipo");
+
+Spinner<Integer> spnCantidad = new Spinner<>(1, 100, 1);   // mín, máx, inicial
+
+ColumnConstraints colEtiquetas = new ColumnConstraints();
+ColumnConstraints colCampos = new ColumnConstraints();
+colCampos.setHgrow(Priority.ALWAYS);                       // los campos se estiran
+form.getColumnConstraints().addAll(colEtiquetas, colCampos);
+
+form.addRow(0, new Label("Nombre:"), txtNombre);
+form.addRow(1, new Label("Tipo:"), cmbTipo);
+form.addRow(2, new Label("Cantidad:"), spnCantidad);
+
+scene.getStylesheets().add(
+        getClass().getResource("/cl/duoc/vivero/estilos.css").toExternalForm());`,
+ r:'VBox abajo, HBox en fila, GridPane planilla, BorderPane cinco zonas. Si no se ve, no lo agregaste.'},
+
+{id:'l23',p:1,n:'2.3',t:'Eventos y controlador',s:'El mozo que lleva los pedidos a la cocina',
+ v:'Un <b>evento</b> es que el usuario toque algo y tu programa reaccione. El <b>controlador</b> es el mozo: recibe el pedido desde la pantalla (la vista), lo lleva a la cocina (el modelo) y vuelve con la respuesta. La vista no cocina y la cocina no atiende mesas.',
+ q:{type:'order',q:'Ordena el viaje de un clic en «Guardar».',lines:['El usuario hace clic en Guardar (vista)','El controlador lee y valida lo escrito','El modelo agrega la planta','La vista muestra «Agregada: Cactus»'],why:'Siempre el mismo flujo: Vista → Controlador → Modelo → Vista.'},
+ m:['Con <code>setOnAction</code> asocias código a un clic.','Lees lo escrito con <code>getText()</code>, llamas al modelo y muestras el resultado con <code>setText</code> o un <code>Alert</code>.','Si la validación falla, avisa con un Alert en vez de dejar que el programa muera en silencio.'],
+ mc:`btnGuardar.setOnAction(e -> {
+    String nombre = txtNombre.getText().trim();
+    if (nombre.isEmpty()) {
+        new Alert(Alert.AlertType.WARNING, "Escribe un nombre").showAndWait();
+        return;
+    }
+    vivero.agregar(nombre);               // el modelo hace el trabajo
+    lblEstado.setText("Agregada: " + nombre);
+    txtNombre.clear();
+});`,
+ a:{type:'fill',q:'Conecta el FXML con el controlador.',code:`<!-- vista.fxml -->
+<Button text="Guardar" onAction="[[0]]"/>
+<TextField fx:id="txtNombre"/>
+
+// VistaController.java
+[[1]]
+private TextField txtNombre;`,b:[{o:['#guardar','guardar()','@guardar'],a:0},{o:['@FXML','@Override','@Controller'],a:0}],why:'onAction="#metodo" enlaza el clic; @FXML enlaza el campo con el fx:id del mismo nombre.'},
+ c:['Con FXML la vista vive en un archivo y el controlador es una clase aparte.','<code>fx:controller</code> conecta ambos; <code>fx:id</code> + <code>@FXML</code> enlazan cada nodo; <code>onAction="#metodo"</code> enlaza el clic.','JavaFX llama a <code>initialize()</code> al terminar de cargar el FXML.','En DSY1102 el controlador reemplaza a la clase gestora de consola: recibe, valida, delega en el modelo y decide qué mostrar.','Las reglas de negocio viven en el modelo, nunca en el controlador.'],
+ cc:`public class VistaController {
+    @FXML private TextField txtNombre;
+    @FXML private Label lblEstado;
+
+    private final Vivero vivero = new Vivero();
+
+    @FXML
+    private void initialize() {
+        lblEstado.setText("Listo para agregar plantas");
+    }
+
+    @FXML
+    private void guardar() {
+        String nombre = txtNombre.getText().trim();
+        if (nombre.isEmpty()) {
+            new Alert(Alert.AlertType.WARNING, "Escribe un nombre").showAndWait();
+            return;
+        }
+        vivero.agregar(nombre);
+        lblEstado.setText("Agregada: " + nombre);
+        txtNombre.clear();
+    }
+}`,
+ r:'Vista → Controlador → Modelo → Vista. El mozo no cocina.'},
+
+{id:'l24',p:1,n:'2.4',t:'TableView',s:'Excel, pero dentro de tu ventana',
+ v:'Una <b>TableView</b> es una planilla dentro de tu ventana. Cada <b>fila</b> es un objeto de tu lista y cada <b>columna</b> dice qué dato del objeto mostrar. Le das la lista y ella dibuja la tabla sola.',
+ q:{type:'mcq',q:'La columna usa new PropertyValueFactory<>("precio"). ¿Qué método necesita Planta?',o:['getPrecio()','setPrecio()','precio.toString()','calcularPrecio()'],a:0,why:'PropertyValueFactory busca el getter por nombre: "precio" → getPrecio().'},
+ m:['Declaras <code>TableView&lt;Planta&gt;</code> y una <code>TableColumn</code> por dato.','<code>PropertyValueFactory</code> busca el getter por nombre.','Los datos van en una <code>ObservableList</code>: si agregas o quitas, la tabla se actualiza sola.','La fila elegida: <code>getSelectionModel().getSelectedItem()</code>.'],
+ mc:`TableView<Planta> tabla = new TableView<>();
+
+TableColumn<Planta, String> colNombre = new TableColumn<>("Nombre");
+colNombre.setCellValueFactory(new PropertyValueFactory<>("nombre"));   // getNombre()
+
+TableColumn<Planta, Integer> colPrecio = new TableColumn<>("Precio");
+colPrecio.setCellValueFactory(new PropertyValueFactory<>("precio"));   // getPrecio()
+
+tabla.getColumns().addAll(colNombre, colPrecio);
+
+ObservableList<Planta> datos = FXCollections.observableArrayList();
+tabla.setItems(datos);
+datos.add(new Planta("Cactus", 3500));   // aparece sola en la tabla`,
+ a:{type:'bug',q:'El usuario apretó «Eliminar» sin elegir ninguna fila. ¿Qué línea explota?',lines:['Planta sel = tabla.getSelectionModel().getSelectedItem();','String nombre = sel.getNombre();','lblEstado.setText("Elegiste " + nombre);'],ans:1,why:'Sin fila seleccionada, sel es null y sel.getNombre() lanza NullPointerException. Revisa if (sel == null) antes.'},
+ c:['<code>PropertyValueFactory</code> usa reflexión y falla en silencio (columna vacía, cero errores). Lo seguro es una lambda.','Búsqueda en vivo: <code>FilteredList</code>. Orden por encabezado: <code>SortedList</code> enlazada al comparador de la tabla.','<code>setCellFactory</code> personaliza cómo se pinta cada celda (moneda, colores).','Antes de eliminar: comprueba que haya selección y pide confirmación.'],
+ cc:`colNombre.setCellValueFactory(d -> new SimpleStringProperty(d.getValue().getNombre()));
+
+ObservableList<Planta> datos = FXCollections.observableArrayList(vivero.listar());
+FilteredList<Planta> filtrados = new FilteredList<>(datos, p -> true);
+txtBuscar.textProperty().addListener((obs, viejo, nuevo) ->
+        filtrados.setPredicate(p -> nuevo == null || nuevo.isBlank()
+                || p.getNombre().toLowerCase().contains(nuevo.toLowerCase())));
+
+SortedList<Planta> ordenados = new SortedList<>(filtrados);
+ordenados.comparatorProperty().bind(tabla.comparatorProperty());
+tabla.setItems(ordenados);
+
+Planta sel = tabla.getSelectionModel().getSelectedItem();
+if (sel == null) {
+    new Alert(Alert.AlertType.INFORMATION, "Selecciona una planta primero").showAndWait();
+    return;
+}`,
+ r:'Fila = objeto, columna = getter. Siempre revisa si hay fila seleccionada.'},
+
+{id:'l31',p:2,n:'3.1',t:'JSON',s:'Guardar objetos como texto con llaves',
+ v:'JSON es una <b>ficha de texto con llaves</b>: «nombre: Cactus, precio: 3500». Guardar es convertir tu objeto en esa ficha y escribirla en un archivo. Leer es el camino inverso. Una librería (<b>Gson</b>) hace la traducción por ti.',
+ q:{type:'mcq',q:'¿Qué hace gson.toJson(planta)?',o:['Convierte el objeto en texto JSON','Convierte texto JSON en objeto','Guarda en MySQL','Borra el archivo'],a:0,why:'toJson: objeto → texto. fromJson: texto → objeto.'},
+ m:['Agrega la dependencia de Gson al <code>pom.xml</code>.','Para guardar: <code>toJson</code> + <code>Files.writeString</code>.','Para leer una lista hay que pasar el tipo exacto con <code>TypeToken</code>, porque Java borra los genéricos en tiempo de ejecución.','Siempre UTF-8, para que las tildes y la ñ sobrevivan.'],
+ mc:`Gson gson = new Gson();
+
+// Guardar
+String json = gson.toJson(plantas);
+Files.writeString(Path.of("plantas.json"), json, StandardCharsets.UTF_8);
+
+// Leer
+String texto = Files.readString(Path.of("plantas.json"), StandardCharsets.UTF_8);
+Type tipoLista = new TypeToken<List<Planta>>() {}.getType();
+List<Planta> leidas = gson.fromJson(texto, tipoLista);`,
+ a:{type:'order',q:'Ordena las líneas para leer plantas.json e imprimir cuántas hay.',lines:['Path ruta = Path.of("plantas.json");','String texto = Files.readString(ruta, StandardCharsets.UTF_8);','List<Planta> plantas = gson.fromJson(texto, tipoLista);','System.out.println(plantas.size());'],why:'Cada línea usa lo que creó la anterior: ruta → texto → lista → tamaño.'},
+ c:['Encapsula todo en una clase <b>repositorio</b>: el resto del programa no sabe que existe un archivo.','Cubre el primer arranque (el archivo no existe) y el archivo vacío (<code>fromJson</code> devuelve null).','Escritura segura: guarda en un temporal y muévelo, así un corte de luz no destruye el original.','Con <code>module-info.java</code>: <code>requires com.google.gson</code> y <code>opens tu.paquete.modelo to com.google.gson</code>.'],
+ cc:`public class RepositorioPlantasJson {
+    private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
+    private static final Type TIPO_LISTA = new TypeToken<List<Planta>>() {}.getType();
+    private final Path archivo;
+
+    public RepositorioPlantasJson(Path archivo) {
+        this.archivo = archivo;
+    }
+
+    public List<Planta> cargar() throws IOException {
+        if (Files.notExists(archivo)) {
+            return new ArrayList<>();                           // primer arranque
+        }
+        String json = Files.readString(archivo, StandardCharsets.UTF_8);
+        List<Planta> lista = GSON.fromJson(json, TIPO_LISTA);
+        return lista != null ? lista : new ArrayList<>();       // archivo vacío
+    }
+
+    public void guardar(List<Planta> plantas) throws IOException {
+        Path temporal = archivo.resolveSibling(archivo.getFileName() + ".tmp");
+        Files.writeString(temporal, GSON.toJson(plantas), StandardCharsets.UTF_8);
+        Files.move(temporal, archivo, StandardCopyOption.REPLACE_EXISTING);
+    }
+}`,
+ r:'toJson guarda, fromJson lee, TypeToken para listas, UTF-8 siempre.'},
+
+{id:'l32',p:2,n:'3.2',t:'SQL con JDBC',s:'El archivador gigante y el teléfono para llamarlo',
+ v:'Una base de datos es un <b>archivador gigante</b>: cada cajón es una tabla y cada ficha es una fila. <b>SQL</b> es el idioma para pedirle cosas. <b>JDBC</b> es el teléfono que conecta a Java con el archivador.',
+ q:{type:'match',q:'Traduce cada palabra SQL al castellano de todos los días.',pairs:[['SELECT','Dame'],['INSERT','Guarda'],['UPDATE','Cambia'],['DELETE','Borra']]},
+ m:['Agrega el driver (aquí <code>mysql-connector-j</code>) y ten el servidor corriendo con la base creada.','La conexión lleva URL, usuario y clave.','«Communications link failure» = el servidor no está levantado. «Access denied» = revisa usuario y clave.','<code>Connection</code> → <code>PreparedStatement</code> → si es SELECT, recorres el <code>ResultSet</code> con <code>next()</code>.','Los <code>?</code> son huecos que rellenas con <code>setString</code> y <code>setInt</code>.'],
+ mc:`String url = "jdbc:mysql://localhost:3306/vivero";
+String sql = "SELECT nombre, precio FROM planta WHERE precio < ?";
+
+try (Connection con = DriverManager.getConnection(url, "root", "tu_clave");
+     PreparedStatement ps = con.prepareStatement(sql)) {
+    ps.setInt(1, 4000);
+    try (ResultSet rs = ps.executeQuery()) {
+        while (rs.next()) {
+            System.out.println(rs.getString("nombre") + " $" + rs.getInt("precio"));
+        }
+    }
+}`,
+ a:{type:'bug',q:'Alguien escribe en el campo: x\'; DROP TABLE planta;-- ¿Qué línea permite el desastre?',lines:['String nombre = txtNombre.getText();','String sql = "DELETE FROM planta WHERE nombre = \'" + nombre + "\'";','Statement st = con.createStatement();','st.executeUpdate(sql);'],ans:1,why:'Pegar texto del usuario al SQL con + es inyección SQL (el pequeño Bobby Tables). Usa PreparedStatement con ?.'},
+ c:['Regla innegociable: <b>nunca</b> armes SQL pegando texto del usuario con +.','<code>try-with-resources</code> para cerrar Connection, Statement y ResultSet.','Transacciones: <code>setAutoCommit(false)</code>, <code>commit()</code> si todo salió bien, <code>rollback()</code> si algo falló.','<code>RETURN_GENERATED_KEYS</code> recupera el id que asignó la base.','Traduce <code>SQLException</code> a una excepción propia para que el controlador no sepa de JDBC.'],
+ cc:`String sql = "INSERT INTO planta (nombre, precio) VALUES (?, ?)";
+try (Connection con = DriverManager.getConnection(url, usuario, clave)) {
+    con.setAutoCommit(false);
+    try (PreparedStatement ps = con.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+        ps.setString(1, "Cactus");
+        ps.setInt(2, 3500);
+        ps.executeUpdate();
+        try (ResultSet claves = ps.getGeneratedKeys()) {
+            if (claves.next()) {
+                System.out.println("Nuevo id: " + claves.getInt(1));
+            }
+        }
+        con.commit();
+    } catch (SQLException e) {
+        con.rollback();
+        throw new PersistenciaException("No pude guardar la planta", e);
+    }
+}`,
+ r:'PreparedStatement con ?, siempre. try-with-resources cierra todo.'},
+
+{id:'l33',p:2,n:'3.3',t:'El patrón DAO',s:'Cambiar de JSON a SQL sin llorar',
+ v:'El <b>DAO</b> es el bodeguero. Tú le pides «tráeme las plantas» y no te importa si las saca de un archivo o de una base de datos. Mientras cumpla su contrato, el resto del programa vive tranquilo.',
+ q:{type:'tf',q:'Con DAO, cambiar de JSON a MySQL obliga a reescribir el controlador.',a:1,why:'Falso. Cambias una sola línea: qué implementación de DAO creas. El resto solo conoce la interfaz.'},
+ m:['DAO = Data Access Object.','Defines una <b>interfaz</b> con las operaciones (listar, guardar, eliminar).','Escribes una <b>implementación por tecnología</b>: una para JSON y otra para SQL.','El modelo recibe el DAO por el constructor y solo conoce la interfaz.'],
+ mc:`public interface PlantaDao {
+    List<Planta> listar();
+    void guardar(Planta planta);
+    void eliminar(Planta planta);
+}
+
+PlantaDao dao = new PlantaDaoJson(Path.of("plantas.json"));
+// PlantaDao dao = new PlantaDaoSql(url, "root", "tu_clave");   // cambias solo esta línea
+
+Vivero vivero = new Vivero(dao);`,
+ a:{type:'order',q:'Ordena las capas, desde la pantalla hasta el disco.',lines:['Vista (FXML)','Controlador','Vivero (modelo con las reglas)','PlantaDao (interfaz)','PlantaDaoJson o PlantaDaoSql'],why:'Cada capa habla solo con la de al lado. Eso hace el proyecto fácil de probar y de defender.'},
+ c:['App en capas: Vista → Controlador → Modelo → DAO → JSON o SQL.','Los errores de persistencia suben como <code>PersistenciaException</code> hasta el controlador, que los muestra con un Alert.','El DAO se arma una sola vez, en <code>App.start()</code>, y se entrega hacia abajo por constructor.','Así, cuando el cliente pida «mejor con base de datos», cambias una línea.'],
+ cc:`public class PlantaDaoSql implements PlantaDao {
+    private final String url, usuario, clave;
+
+    public PlantaDaoSql(String url, String usuario, String clave) {
+        this.url = url;
+        this.usuario = usuario;
+        this.clave = clave;
+    }
+
+    @Override
+    public List<Planta> listar() throws PersistenciaException {
+        String sql = "SELECT nombre, precio FROM planta ORDER BY nombre";
+        List<Planta> lista = new ArrayList<>();
+        try (Connection con = DriverManager.getConnection(url, usuario, clave);
+             PreparedStatement ps = con.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) {
+                lista.add(new Planta(rs.getString("nombre"), rs.getInt("precio")));
+            }
+            return lista;
+        } catch (SQLException e) {
+            throw new PersistenciaException("No pude leer las plantas", e);
+        }
+    }
+    // guardar y eliminar siguen el mismo patrón con PreparedStatement
+}
+
+// App.java: el único lugar que decide la tecnología
+PlantaDao dao = new PlantaDaoSql("jdbc:mysql://localhost:3306/vivero", "root", "tu_clave");
+Vivero vivero = new Vivero(dao);`,
+ r:'El DAO es el bodeguero: interfaz arriba, una implementación por tecnología abajo.'},
+
+{id:'fin',p:2,n:'Fin',t:'Doctor de errores',s:'Los errores que te harán llorar y el checklist de entrega',custom:true,
+ steps:[
+  {kind:'text',lv:'g',title:'Antes de entregar',body:'<p class="big">Llegaste a la última estación. Aquí juntamos los síntomas que más aparecen cuando algo no funciona, con su cura.</p><p>Son dos rondas de «une el síntoma con su cura» y después un checklist que puedes ir marcando antes de subir a AVA.</p>'},
+  {kind:'act',act:{type:'match',q:'Ronda 1: une cada síntoma con su cura.',pairs:[['NullPointerException','Revisa null antes de usar el objeto'],['Columna de TableView vacía y sin error','Usa una lambda en setCellValueFactory'],['«JavaFX runtime components are missing»','mvn javafx:run o --module-path y --add-modules'],['La ventana se congela','Task en otro hilo y Platform.runLater']]}},
+  {kind:'act',act:{type:'match',q:'Ronda 2: une cada síntoma con su cura.',pairs:[['Gson: «module does not open»','opens tu.paquete.modelo to com.google.gson'],['SQLException: no suitable driver','Agrega mysql-connector-j al pom.xml'],['ConcurrentModificationException','Usa removeIf o un Iterator'],['Tildes y ñ convertidas en símbolos raros','StandardCharsets.UTF_8 en lecturas y escrituras']]}},
+  {kind:'check'}],
+ r:'Revisa el checklist cada vez que entregues algo.'}
+];
+
+const CHECK=['El proyecto compila y corre desde cero con JDK 21 (prueba en una carpeta limpia).','No quedaron rutas absolutas del tipo C:\\Users\\TuNombre...','El archivo JSON o la base de datos se crea sola si no existe.','Probaste los casos malos: campo vacío, número negativo, lista vacía, nada seleccionado.','Cada excepción llega al usuario como un mensaje claro, no como un stack trace.','Los commits están en GitHub con mensajes que un humano entienda.','Incluiste un README que explica cómo ejecutar el proyecto.','Subiste el archivo correcto a AVA antes del cierre, no a las 23:59 con el wifi inestable.'];
+
+const KEY='dsy1102-dummies-v1';
+let S={done:{},stars:{},check:{},last:null,fs:17,comfy:false,focus:false,calm:false,brk:true};
+try{const raw=localStorage.getItem(KEY);if(raw)S=Object.assign(S,JSON.parse(raw))}catch(e){}
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}};
+
+const $=s=>document.querySelector(s);
+const app=$('#app');
+const esc=t=>String(t).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function hl(code){
+  const re=/(\/\/[^\n]*|<!--[\s\S]*?-->)|("(?:[^"\\\n]|\\.)*")|\b(public|private|protected|class|interface|extends|implements|new|return|if|else|for|while|try|catch|finally|throw|throws|static|final|void|int|abstract|this|super|null|true|false|default)\b/g;
+  let out='',i=0,m;
+  while((m=re.exec(code))){out+=esc(code.slice(i,m.index));
+    out+=m[1]?'<span class="c">'+esc(m[1])+'</span>':m[2]?'<span class="s">'+esc(m[2])+'</span>':'<span class="k">'+m[3]+'</span>';i=re.lastIndex}
+  return out+esc(code.slice(i));
+}
+const codeBox=c=>'<div class="codebox"><pre><code style="background:none;padding:0">'+hl(c)+'</code></pre><button class="copy" data-copy>Copiar</button></div>';
+const shuffle=a=>{const b=a.slice();for(let i=b.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[b[i],b[j]]=[b[j],b[i]]}return b};
+const shuffled=a=>{if(a.length<2)return a.slice();let b;do{b=shuffle(a)}while(b.every((x,i)=>x===a[i]));return b};
+const LVN={g:'Nivel 1 · Simple',y:'Nivel 2 · Mediana',b:'Nivel 3 · Completa'};
+
+function stepsOf(l){
+  if(l.custom)return l.steps.concat([{kind:'wrap'}]);
+  return [
+    {kind:'text',lv:'g',title:'La idea en 30 segundos',body:'<p class="big">'+l.v+'</p>'},
+    {kind:'act',act:l.q,label:'Chequeo rápido'},
+    {kind:'text',lv:'y',title:'Hagámoslo funcionar',body:'<ul>'+l.m.map(x=>'<li>'+x+'</li>').join('')+'</ul>'+codeBox(l.mc)},
+    {kind:'act',act:l.a,label:'Manos a la obra'},
+    {kind:'text',lv:'b',title:'Nivel jefe (opcional)',body:'<p class="opt-note">Para la evaluación o el proyecto completo. Puedes saltarlo y volver cuando quieras.</p><ul>'+l.c.map(x=>'<li>'+x+'</li>').join('')+'</ul>'+codeBox(l.cc),skip:true},
+    {kind:'wrap'}];
+}
+
+let cur=null,stepI=0,solved=false,firstOk={},doneSteps={},errs=0;
+
+function progress(){
+  const n=L.length,d=L.filter(l=>S.done[l.id]).length,p=Math.round(d/n*100);
+  $('#barfill').style.width=p+'%';$('#pct').textContent=p+'%';
+  return {n,d};
+}
+function nextLesson(){return L.find(l=>!S.done[l.id])}
+
+function home(){
+  cur=null;stopSpeak();
+  try{if(location.hash)history.replaceState(null,'',location.pathname+location.search)}catch(e){}
+  const {d}=progress(),nx=nextLesson();
+  const totalStars=Object.values(S.stars).reduce((a,b)=>a+b,0);
+  app.innerHTML='<section class="hero"><h1>Java, JavaFX y Persistencia, una estación a la vez</h1>'+
+  '<p>El manual «para Dummies» de DSY1102 convertido en lecciones cortas. Cada estación tiene seis pasos de un par de minutos: una idea simple, un chequeo, código, un desafío y un nivel jefe que puedes saltar. Sin puntaje en contra: equivocarse es parte del juego.</p>'+
+  '<div class="cta">'+(nx?'<button class="btn" data-go="'+nx.id+'">'+(d?'Seguir: ':'Empezar: ')+esc(nx.n+' '+nx.t)+'</button>':'<button class="btn" data-go="fin">Repasar el checklist</button>')+
+  '<span class="lv y" style="align-self:center">'+d+' de '+L.length+' estaciones · '+totalStars+' ★</span></div></section>'+
+  '<section class="map" aria-label="Mapa del curso">'+P.map((p,pi)=>'<div style="--c:var(--'+p.k+')"><div class="lineh"><b>'+p.n+'</b><span>'+p.d+'</span></div><div class="stations">'+
+    L.filter(l=>l.p===pi).map(l=>'<button class="st'+(S.done[l.id]?' done':'')+(nx&&nx.id===l.id?' next':'')+'" data-go="'+l.id+'"><small>'+l.n+'</small><strong>'+esc(l.t)+'</strong>'+(S.stars[l.id]?'<span class="stars">'+'★'.repeat(S.stars[l.id])+'</span>':'')+'</button>').join('')+
+  '</div></div>').join('')+'</section>'+
+  '<section class="tips"><div class="tip"><b><span class="lv g">Verde</span> para entender</b>Una analogía y cero tecnicismos. Si solo tienes 2 minutos, lee esto.</div>'+
+  '<div class="tip"><b><span class="lv y">Amarillo</span> para trabajar</b>Código corto, reglas prácticas y los errores típicos.</div>'+
+  '<div class="tip"><b><span class="lv b">Azul</span> para dominar</b>Opcional. Para la evaluación o el proyecto completo.</div></section>'+
+  '<footer>Basado en el manual «Java, JavaFX y Persistencia para Dummies» de DSY1102. Código en JDK 21 y JavaFX 21.0.6. Tu avance se guarda solo en este navegador.</footer>';
+  $('#nav')?.remove();
+  window.scrollTo(0,0);
+}
+
+function openLesson(id,at){
+  const l=L.find(x=>x.id===id);if(!l)return home();
+  cur=l;stepI=at||0;S.last=id;save();
+  try{history.replaceState(null,'','#'+id)}catch(e){}
+  firstOk={};doneSteps={};renderStep();
+}
+
+function renderStep(){
+  stopSpeak();
+  const l=cur,st=stepsOf(l),s=st[stepI];
+  solved=s.kind!=='act'||!!doneSteps[stepI];errs=0;
+  const part=P[l.p];
+  let body='';
+  if(s.kind==='text'){
+    body='<article class="card '+s.lv+'"><div class="row" style="margin:0;justify-content:space-between;align-items:center"><span class="lv '+s.lv+'">'+LVN[s.lv]+'</span><button class="ib" id="speak">Leer en voz alta</button></div><h3>'+s.title+'</h3><div id="readable">'+s.body+'</div>'+
+    (s.skip?'<div class="row"><button class="btn sec" id="skipBlue">Saltar el nivel jefe</button></div>':'')+'</article>';
+  }else if(s.kind==='act'){
+    body='<article class="card a"><span class="lv" style="background:color-mix(in srgb,var(--fx) 14%,transparent);color:var(--fx)">'+(s.label||'Actividad')+'</span><div id="act"></div></article>';
+  }else if(s.kind==='check'){
+    body='<article class="card g"><span class="lv g">Checklist antes de subir a AVA</span><h3>Marca lo que ya revisaste</h3><div>'+CHECK.map((c,i)=>'<label class="check'+(S.check[i]?' on':'')+'"><input type="checkbox" data-ck="'+i+'"'+(S.check[i]?' checked':'')+'><span>'+esc(c)+'</span></label>').join('')+'</div><p class="opt-note" id="ckn"></p></article>';
+  }else{
+    const acts=st.filter(x=>x.kind==='act').length;
+    const stars=Object.keys(firstOk).length;
+    S.done[l.id]=true;S.stars[l.id]=Math.max(S.stars[l.id]||0,stars);save();progress();
+    const nx=nextLesson();
+    body='<article class="card g wrap"><div class="medal" aria-hidden="true">'+('★'.repeat(stars)||'✓')+'</div><h3>¡Estación '+esc(l.n)+' lista!</h3>'+
+    '<p style="margin:0 auto;color:var(--mute)">'+(stars===acts?'Todo a la primera. Impecable.':stars?'Ganaste '+stars+' de '+acts+' estrellas a la primera. Las demás también cuentan: las resolviste.':'Lo resolviste, y eso es lo que importa. Puedes repetirla cuando quieras para sacar estrellas.')+'</p>'+
+    '<div class="recap"><b>Para llevar:</b> '+esc(l.r)+'</div>'+
+    '<div class="row" style="justify-content:center">'+(S.brk&&nx?'<button class="btn sec" id="takeBreak">Pausa de 2 min</button>':'')+
+    (nx?'<button class="btn" data-go="'+nx.id+'">Siguiente: '+esc(nx.n+' '+nx.t)+'</button>':'<button class="btn" id="toMap">Ver el mapa completo</button>')+'</div></article>';
+  }
+  app.innerHTML='<nav class="crumb"><button data-home>Mapa</button><span>›</span><span style="color:var(--'+part.k+');font-weight:700">'+part.n+'</span></nav>'+
+   '<h2 class="lt">'+esc(l.n+' · '+l.t)+'</h2><p class="lsub">'+esc(l.s)+'</p>'+
+   '<div class="dots" aria-label="Paso '+(stepI+1)+' de '+st.length+'">'+st.map((_,i)=>'<span class="'+(i===stepI?'on':i<stepI?'past':'')+'"></span>').join('')+'</div>'+body;
+  if(s.kind==='act')renderAct(s.act,$('#act'));
+  if(s.kind==='check')ckNote();
+  navBar(st);
+  window.scrollTo(0,0);
+  const h=app.querySelector('h3,.q');if(h){h.setAttribute('tabindex','-1');h.focus({preventScroll:true})}
+}
+
+function navBar(st){
+  let n=$('#nav');
+  if(!n){n=document.createElement('div');n.id='nav';n.className='nav';document.body.appendChild(n)}
+  const last=stepI===st.length-1;
+  n.innerHTML='<button class="btn sec" id="prev"'+(stepI===0?' disabled':'')+'>Atrás</button>'+
+   (last?'<button class="btn" id="toMap2">Mapa</button>':'<button class="btn" id="next"'+(solved?'':' disabled')+'>'+(solved?'Siguiente':'Resuelve para seguir')+'</button>');
+}
+function unlock(first){
+  if(!solved){solved=true;doneSteps[stepI]=true;if(first)firstOk[stepI]=true}
+  const b=$('#next');if(b){b.disabled=false;b.textContent='Siguiente'}
+}
+
+function fb(box,ok,msg){box.className='fb show '+(ok?'ok':'no');box.innerHTML=msg;box.setAttribute('role','status')}
+function shakeEl(el){if(S.calm)return;el.classList.remove('shake');void el.offsetWidth;el.classList.add('shake')}
+
+function renderAct(a,root){
+  const why=a.why?' '+esc(a.why):'';
+  if(a.type==='mcq'||a.type==='tf'){
+    const o=a.type==='tf'?['Verdadero','Falso']:a.o;
+    root.innerHTML='<p class="q">'+esc(a.q)+'</p>'+(a.code?codeBox(a.code):'')+'<div class="opts">'+o.map((x,i)=>'<button class="opt'+(a.mono?' mono':'')+'" data-i="'+i+'">'+esc(x)+'</button>').join('')+'</div><div class="fb"></div>';
+    const box=root.querySelector('.fb');
+    root.querySelectorAll('.opt').forEach(b=>b.onclick=()=>{
+      if(solved)return;const i=+b.dataset.i;
+      if(i===a.a){b.classList.add('ok');fb(box,true,'<b>¡Exacto!</b>'+why);unlock(errs===0)}
+      else{b.classList.add('no');b.disabled=true;errs++;shakeEl(b);
+        fb(box,false,errs>=2?'<b>La correcta está marcada en verde.</b>'+why:'<b>Casi.</b> Prueba otra; no resta nada.');
+        if(errs>=2){root.querySelector('[data-i="'+a.a+'"]').classList.add('ok');unlock(false)}}
+    });
+  }else if(a.type==='bug'){
+    root.innerHTML='<p class="q">'+esc(a.q)+'</p><p class="opt-note">Toca la línea culpable.</p><div class="opts">'+a.lines.map((x,i)=>'<button class="opt mono" data-i="'+i+'">'+hl(x)+'</button>').join('')+'</div><div class="fb"></div>';
+    const box=root.querySelector('.fb');
+    root.querySelectorAll('.opt').forEach(b=>b.onclick=()=>{
+      if(solved)return;const i=+b.dataset.i;
+      if(i===a.ans){b.classList.add('ok');fb(box,true,'<b>¡La pillaste!</b>'+why);unlock(errs===0)}
+      else{b.classList.add('no');b.disabled=true;errs++;shakeEl(b);
+        fb(box,false,errs>=2?'<b>Era la marcada en verde.</b>'+why:'<b>Esa línea está bien.</b> Busca otra.');
+        if(errs>=2){root.querySelector('[data-i="'+a.ans+'"]').classList.add('ok');unlock(false)}}
+    });
+  }else if(a.type==='order'){
+    let pool=shuffled(a.lines.map((x,i)=>i)),ans=[];
+    root.innerHTML='<p class="q">'+esc(a.q)+'</p><div class="ans" aria-label="Tu respuesta"></div><div class="pool" aria-label="Líneas disponibles"></div><div class="row"><button class="btn" data-chk disabled>Comprobar</button><button class="btn sec" data-rst>Reiniciar</button></div><div class="fb"></div>';
+    const A=root.querySelector('.ans'),Pl=root.querySelector('.pool'),box=root.querySelector('.fb'),chk=root.querySelector('[data-chk]');
+    const draw=()=>{
+      A.innerHTML=ans.map(i=>'<button class="chip" data-a="'+i+'">'+hl(a.lines[i])+'</button>').join('');
+      Pl.innerHTML=pool.map(i=>'<button class="chip" data-p="'+i+'">'+hl(a.lines[i])+'</button>').join('');
+      chk.disabled=pool.length>0||solved;
+      A.querySelectorAll('[data-a]').forEach(b=>b.onclick=()=>{if(solved)return;const i=+b.dataset.a;ans=ans.filter(x=>x!==i);pool.push(i);draw()});
+      Pl.querySelectorAll('[data-p]').forEach(b=>b.onclick=()=>{if(solved)return;const i=+b.dataset.p;pool=pool.filter(x=>x!==i);ans.push(i);draw()});
+    };
+    draw();
+    root.querySelector('[data-rst]').onclick=()=>{if(solved)return;pool=shuffled(a.lines.map((x,i)=>i));ans=[];box.className='fb';draw()};
+    chk.onclick=()=>{
+      let k=0;while(k<ans.length&&ans[k]===k)k++;
+      if(k===ans.length){fb(box,true,'<b>¡Orden perfecto!</b>'+why);unlock(errs===0);draw()}
+      else{errs++;shakeEl(A);
+        if(errs>=3){ans=a.lines.map((x,i)=>i);pool=[];fb(box,false,'<b>Así queda el orden correcto.</b>'+why);unlock(false);draw()}
+        else{fb(box,false,'<b>Vas bien:</b> '+(k?'las primeras '+k+' están en su lugar.':'revisa cuál va primero.')+' Toca una línea de arriba para devolverla.')}}
+    };
+  }else if(a.type==='fill'){
+    let html=esc(a.code).replace(/\[\[(\d+)\]\]/g,(m,n)=>{const b=a.b[+n];return '<select class="blank" data-b="'+n+'" aria-label="Hueco '+(+n+1)+'"><option value="">¿…?</option>'+b.o.map((x,i)=>'<option value="'+i+'">'+esc(x)+'</option>').join('')+'</select>'});
+    root.innerHTML='<p class="q">'+esc(a.q)+'</p><pre>'+html+'</pre><div class="row"><button class="btn" data-chk>Comprobar</button></div><div class="fb"></div>';
+    const box=root.querySelector('.fb');
+    root.querySelector('[data-chk]').onclick=()=>{
+      if(solved)return;
+      const sels=[...root.querySelectorAll('select')];
+      if(sels.some(s=>s.value==='')){fb(box,false,'Te falta elegir algún hueco.');return}
+      const bad=sels.filter(s=>+s.value!==a.b[+s.dataset.b].a);
+      sels.forEach(s=>s.style.borderColor=bad.includes(s)?'var(--bad)':'var(--ok)');
+      if(!bad.length){fb(box,true,'<b>¡Compila!</b>'+why);unlock(errs===0)}
+      else{errs++;
+        if(errs>=2){sels.forEach(s=>{s.value=a.b[+s.dataset.b].a;s.style.borderColor='var(--ok)'});fb(box,false,'<b>Te dejé las correctas.</b>'+why);unlock(false)}
+        else fb(box,false,'<b>'+(bad.length===1?'Un hueco':bad.length+' huecos')+' en rojo.</b> Cambia esos y prueba otra vez.')}
+    };
+  }else if(a.type==='match'){
+    const L2=shuffle(a.pairs.map((p,i)=>i)),R2=shuffled(a.pairs.map((p,i)=>i));
+    let sel=null,done=0;
+    root.innerHTML='<p class="q">'+esc(a.q)+'</p><p class="opt-note">Toca uno a la izquierda y luego su pareja a la derecha.</p><div class="mgrid"><div class="mcol">'+L2.map(i=>'<button class="opt" data-l="'+i+'">'+esc(a.pairs[i][0])+'</button>').join('')+'</div><div class="mcol">'+R2.map(i=>'<button class="opt" data-r="'+i+'">'+esc(a.pairs[i][1])+'</button>').join('')+'</div></div><div class="fb"></div>';
+    const box=root.querySelector('.fb');
+    root.querySelectorAll('[data-l]').forEach(b=>b.onclick=()=>{if(b.classList.contains('lock'))return;root.querySelectorAll('[data-l]').forEach(x=>x.classList.remove('sel'));b.classList.add('sel');sel=+b.dataset.l});
+    root.querySelectorAll('[data-r]').forEach(b=>b.onclick=()=>{
+      if(b.classList.contains('lock'))return;
+      if(sel===null){fb(box,false,'Primero elige algo de la columna izquierda.');return}
+      const r=+b.dataset.r,lb=root.querySelector('[data-l="'+sel+'"]');
+      if(r===sel){[lb,b].forEach(x=>{x.classList.remove('sel');x.classList.add('lock');x.setAttribute('aria-disabled','true')});done++;sel=null;
+        if(done===a.pairs.length){fb(box,true,'<b>¡Todas las parejas!</b>'+(errs?' Con '+errs+' intento'+(errs>1?'s':'')+' de más, y eso está perfecto.':' Sin un solo error.'));unlock(errs===0)}
+        else fb(box,true,'¡Bien! Quedan '+(a.pairs.length-done)+'.')}
+      else{errs++;shakeEl(b);fb(box,false,'Esa no es su pareja. Prueba con otra.')}
+    });
+  }
+}
+
+function ckNote(){const n=Object.values(S.check).filter(Boolean).length,e=$('#ckn');if(e)e.textContent=n===CHECK.length?'Todo revisado. Ahora sí: a subir a AVA.':n+' de '+CHECK.length+' revisados.'}
+
+let synth=null;try{synth=window.speechSynthesis||null}catch(e){}
+function stopSpeak(){try{synth&&synth.cancel()}catch(e){}}
+function speak(){
+  const el=$('#readable'),b=$('#speak');if(!el||!synth){if(b)b.textContent='No disponible aquí';return}
+  try{
+    if(synth.speaking){synth.cancel();b.textContent='Leer en voz alta';return}
+    const clone=el.cloneNode(true);clone.querySelectorAll('.codebox').forEach(x=>x.remove());
+    const u=new SpeechSynthesisUtterance(clone.textContent.replace(/\s+/g,' '));u.lang='es-CL';u.rate=.95;
+    u.onend=()=>{const bb=$('#speak');if(bb)bb.textContent='Leer en voz alta'};
+    synth.speak(u);b.textContent='Detener lectura';
+  }catch(e){b.textContent='No disponible aquí'}
+}
+
+let brT=null;
+function openBreak(){
+  let t=120;const p=$('#breakPanel'),o=$('#brTime');p.classList.add('open');o.textContent='2:00';$('#brEnd').focus();
+  clearInterval(brT);brT=setInterval(()=>{t--;o.textContent=Math.floor(t/60)+':'+String(t%60).padStart(2,'0');if(t<=0){clearInterval(brT);o.textContent='¡Listo!'}},1000);
+}
+function closeBreak(){clearInterval(brT);$('#breakPanel').classList.remove('open')}
+
+function applyPrefs(){
+  document.documentElement.style.setProperty('--fs',S.fs+'px');
+  document.body.classList.toggle('comfy',S.comfy);document.body.classList.toggle('focus',S.focus);document.body.classList.toggle('calm',S.calm);
+  if(S.comfy)document.body.style.removeProperty('--fs');
+  $('#pComfy').checked=S.comfy;$('#pFocus').checked=S.focus;$('#pCalm').checked=S.calm;$('#pBreak').checked=S.brk;
+}
+
+document.addEventListener('click',e=>{
+  const t=e.target.closest('button,input');if(!t)return;
+  if(t.dataset.go){openLesson(t.dataset.go);return}
+  if(t.hasAttribute('data-home')||t.id==='home'||t.id==='toMap'||t.id==='toMap2'){home();return}
+  if(t.id==='next'){const st=stepsOf(cur);if(solved&&stepI<st.length-1){stepI++;renderStep()}return}
+  if(t.id==='prev'){if(stepI>0){stepI--;renderStep()}return}
+  if(t.id==='skipBlue'){stepI=stepsOf(cur).length-1;renderStep();return}
+  if(t.id==='speak'){speak();return}
+  if(t.id==='takeBreak'){openBreak();return}
+  if(t.id==='brEnd'){closeBreak();return}
+  if(t.id==='openSet'){$('#setPanel').classList.add('open');$('#closeSet').focus();return}
+  if(t.id==='closeSet'){$('#setPanel').classList.remove('open');return}
+  if(t.id==='resetAll'){
+    if(t.dataset.sure){S.done={};S.stars={};S.check={};S.last=null;save();delete t.dataset.sure;t.textContent='Borrar mi progreso';$('#resetMsg').textContent='Progreso borrado.';if(!cur)home();else progress();}
+    else{t.dataset.sure='1';t.textContent='¿Seguro? Toca otra vez';}
+    return}
+  if(t.dataset.fs){S.fs=Math.max(15,Math.min(24,S.fs+ +t.dataset.fs));S.comfy=false;save();applyPrefs();return}
+  if(t.hasAttribute('data-copy')){const pre=t.parentNode.querySelector('pre');
+    try{navigator.clipboard.writeText(pre.textContent).then(()=>{t.textContent='Copiado'},()=>{t.textContent='No se pudo'})}catch(err){t.textContent='No se pudo'}
+    setTimeout(()=>{t.textContent='Copiar'},1800);return}
+});
+document.addEventListener('change',e=>{
+  const t=e.target;
+  if(t.dataset.ck!==undefined){S.check[t.dataset.ck]=t.checked;t.closest('.check').classList.toggle('on',t.checked);save();ckNote();return}
+  if(t.id==='pComfy'){S.comfy=t.checked}else if(t.id==='pFocus'){S.focus=t.checked}else if(t.id==='pCalm'){S.calm=t.checked}else if(t.id==='pBreak'){S.brk=t.checked}else return;
+  save();applyPrefs();
+});
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape'){$('#setPanel').classList.remove('open');closeBreak();return}
+  if(!cur||/INPUT|SELECT|TEXTAREA/.test(document.activeElement.tagName))return;
+  if(e.key==='ArrowRight'){const b=$('#next');if(b&&!b.disabled)b.click()}
+  if(e.key==='ArrowLeft'){const b=$('#prev');if(b&&!b.disabled)b.click()}
+});
+window.addEventListener('hashchange',()=>{const h=location.hash.slice(1);if(h&&(!cur||cur.id!==h))openLesson(h);else if(!h&&cur)home()});
+
+applyPrefs();
+const h0=location.hash.slice(1);
+if(h0&&L.some(l=>l.id===h0))openLesson(h0);else home();
+}
+</script>
+</body>
+</html>
